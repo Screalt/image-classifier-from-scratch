@@ -1,7 +1,8 @@
 import argparse
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, List, Tuple
 
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -34,7 +35,9 @@ class SimpleCNN(nn.Module):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="CNN training with train/val split.")
+    parser = argparse.ArgumentParser(
+        description="CNN training with train/val split, metrics and plots."
+    )
     parser.add_argument("--epochs", type=int, default=5, help="Number of epochs.")
     parser.add_argument("--batch_size", type=int, default=64, help="Batch size.")
     parser.add_argument(
@@ -60,6 +63,12 @@ def parse_args():
         type=int,
         default=2,
         help="DataLoader workers (set 0 if issues on your OS).",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=Path,
+        default=Path("outputs"),
+        help="Base directory for checkpoints and plots.",
     )
     return parser.parse_args()
 
@@ -169,6 +178,18 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
+    history: Dict[str, List[float]] = {
+        "train_loss": [],
+        "train_acc": [],
+        "val_loss": [],
+        "val_acc": [],
+    }
+    best_val_acc = 0.0
+    checkpoints_dir = args.output_dir / "checkpoints"
+    plots_dir = args.output_dir / "plots"
+    checkpoints_dir.mkdir(parents=True, exist_ok=True)
+    plots_dir.mkdir(parents=True, exist_ok=True)
+
     for epoch in range(1, args.epochs + 1):
         print(f"\nEpoch {epoch}/{args.epochs}")
         train_loss, train_acc = train_one_epoch(
@@ -180,6 +201,56 @@ def main():
             f"train_loss: {train_loss:.4f} - train_acc: {train_acc:.4f} | "
             f"val_loss: {val_loss:.4f} - val_acc: {val_acc:.4f}"
         )
+
+        history["train_loss"].append(train_loss)
+        history["train_acc"].append(train_acc)
+        history["val_loss"].append(val_loss)
+        history["val_acc"].append(val_acc)
+
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            checkpoint_path = checkpoints_dir / "best_model.pth"
+            torch.save(
+                {
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "epoch": epoch,
+                    "val_acc": val_acc,
+                },
+                checkpoint_path,
+            )
+            print(f"Saved new best model to {checkpoint_path} (val_acc={val_acc:.4f})")
+
+    plot_training_curves(history, plots_dir)
+
+
+def plot_training_curves(history: Dict[str, List[float]], plots_dir: Path) -> None:
+    epochs = range(1, len(history["train_loss"]) + 1)
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(epochs, history["train_loss"], label="Train Loss")
+    plt.plot(epochs, history["val_loss"], label="Val Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Loss over epochs")
+    plt.legend()
+    plt.tight_layout()
+    loss_path = plots_dir / "loss_curve.png"
+    plt.savefig(loss_path)
+    plt.close()
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(epochs, history["train_acc"], label="Train Acc")
+    plt.plot(epochs, history["val_acc"], label="Val Acc")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.title("Accuracy over epochs")
+    plt.legend()
+    plt.tight_layout()
+    acc_path = plots_dir / "accuracy_curve.png"
+    plt.savefig(acc_path)
+    plt.close()
+    print(f"Saved plots to {loss_path} and {acc_path}")
 
 
 if __name__ == "__main__":
