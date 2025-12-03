@@ -11,6 +11,13 @@ Train a tiny CNN on FashionMNIST with minimal glue code. Saves the best checkpoi
 - Optimizer: Adam + CrossEntropyLoss. Logs minibatch stats and epoch summaries.
 - Runs on GPU if available, otherwise CPU.
 
+## Code structure
+- `src/train.py` — CLI entrypoint orchestrating the pipeline.
+- `src/models/cnn.py` — model definition.
+- `src/data/datamodule.py` — dataset + train/val dataloaders.
+- `src/utils/training.py` — train/validate loops.
+- `src/utils/plotting.py` — matplotlib curves.
+
 ## Setup (EN)
 ```bash
 pip install -r requirements.txt
@@ -31,6 +38,13 @@ python -m src.train --epochs 2 --batch_size 64
 - Sauvegarde les courbes dans `outputs/plots/loss_curve.png` et `outputs/plots/accuracy_curve.png`.
 - Optimiseur : Adam + CrossEntropyLoss. Logs par minibatch et résumé par époque.
 - S’exécute sur GPU si dispo, sinon CPU.
+
+## Structure du code
+- `src/train.py` — point d’entrée CLI qui orchestre le pipeline.
+- `src/models/cnn.py` — définition du modèle.
+- `src/data/datamodule.py` — dataset + dataloaders train/val.
+- `src/utils/training.py` — boucles train/val.
+- `src/utils/plotting.py` — courbes matplotlib.
 
 ## Installation (FR)
 ```bash
