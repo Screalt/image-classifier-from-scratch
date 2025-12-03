@@ -5,7 +5,8 @@ Train a tiny CNN on FashionMNIST with minimal glue code.
 ## What’s inside (EN)
 - Downloads FashionMNIST (train split) into `data/`.
 - Simple CNN: two conv+ReLU+maxpool blocks, then a small MLP.
-- Optimizer: Adam + CrossEntropyLoss. Logs loss every 100 steps.
+- Train/val split (90/10 by default), metrics: loss + accuracy for both.
+- Optimizer: Adam + CrossEntropyLoss. Logs minibatch stats and epoch summaries.
 - Runs on GPU if available, otherwise CPU.
 
 ## Setup (EN)
@@ -23,7 +24,8 @@ python -m src.train --epochs 1 --batch_size 64
 ## Ce que contient le projet (FR)
 - Télécharge FashionMNIST (partie train) dans `data/`.
 - CNN simple : deux blocs conv+ReLU+maxpool, suivi d’un petit MLP.
-- Optimiseur : Adam + CrossEntropyLoss. Logs de la perte toutes les 100 itérations.
+- Split train/val (90/10 par défaut), métriques : loss + accuracy pour les deux.
+- Optimiseur : Adam + CrossEntropyLoss. Logs par minibatch et résumé par époque.
 - S’exécute sur GPU si dispo, sinon CPU.
 
 ## Installation (FR)
