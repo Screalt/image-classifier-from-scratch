@@ -8,6 +8,7 @@ import torch.optim as optim
 
 from src.data.datamodule import make_dataloaders
 from src.models.cnn import SimpleCNN
+from src.models.resnet import build_resnet18
 from src.utils.plotting import plot_training_curves
 from src.utils.training import evaluate, train_one_epoch
 
@@ -48,6 +49,26 @@ def parse_args():
         default=Path("outputs"),
         help="Base directory for checkpoints and plots.",
     )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default="fashion_mnist",
+        choices=["fashion_mnist", "clothing"],
+        help="Dataset to use.",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="simple_cnn",
+        choices=["simple_cnn", "resnet18"],
+        help="Model architecture.",
+    )
+    parser.add_argument(
+        "--image_size",
+        type=int,
+        default=28,
+        help="Image size for transforms (use 224 or 512 for clothing dataset).",
+    )
     return parser.parse_args()
 
 
@@ -56,14 +77,24 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    train_loader, val_loader = make_dataloaders(
+    train_loader, val_loader, class_names = make_dataloaders(
         data_dir=args.data_dir,
         batch_size=args.batch_size,
         val_split=args.val_split,
         seed=args.seed,
         num_workers=args.num_workers,
+        dataset=args.dataset,
+        image_size=args.image_size,
     )
-    model = SimpleCNN().to(device)
+
+    num_classes = len(class_names)
+    if args.model == "simple_cnn":
+        model = SimpleCNN(num_classes=num_classes).to(device)
+    elif args.model == "resnet18":
+        model = build_resnet18(num_classes=num_classes).to(device)
+    else:
+        raise ValueError(f"Unknown model: {args.model}")
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
@@ -105,6 +136,10 @@ def main():
                     "optimizer_state_dict": optimizer.state_dict(),
                     "epoch": epoch,
                     "val_acc": val_acc,
+                    "class_names": class_names,
+                    "model": args.model,
+                    "dataset": args.dataset,
+                    "image_size": args.image_size,
                 },
                 checkpoint_path,
             )
