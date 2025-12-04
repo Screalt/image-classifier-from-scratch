@@ -1,5 +1,9 @@
 # Image Classifier from Scratch
 
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.x-orange)
+![Datasets](https://img.shields.io/badge/Datasets-FashionMNIST%20%7C%20Clothing-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 Train image classifiers on two datasets: a stylized set (FashionMNIST) and a real photo set (clothing-dataset-small). Two models depending on the case, checkpoints + plots, and CLIs for train/eval/predict.
 
